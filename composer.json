@@ -1,0 +1,20 @@
+{
+    "name": "kenjiefx/pluncext",
+    "description": "ScratchPHP extension built for Plunc JS",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Kenjiefx\\Pluncext\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kenjie Terrado",
+            "email": "terradoflex@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "kenjiefx/scratch-php": "dev-main"
+    }
+}

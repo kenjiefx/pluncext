@@ -1,0 +1,1 @@
+<span style="color:red">Hello {{firstName}}, from AnotherTests/TestComponent</span>

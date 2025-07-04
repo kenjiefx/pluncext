@@ -1,0 +1,14 @@
+{
+    "theme": "slate",
+    "exportDir": "\/dist",
+    "build": {
+        "useRandomAssetsFileNames": true
+    },
+    "extensions": {
+        "Kenjiefx\\Pluncext\\PluncExtension": {
+            "autoTsc": true,
+            "obfuscateHandlers": true,
+            "minify": true
+        }
+    }
+}
