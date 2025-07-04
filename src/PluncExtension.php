@@ -5,7 +5,10 @@ namespace Kenjiefx\Pluncext;
 use Kenjiefx\Pluncext\Services\ModuleCollectionService;
 use Kenjiefx\Pluncext\Services\PluncAppBundleService;
 use Kenjiefx\Pluncext\Services\TypeScriptService;
+use Kenjiefx\ScratchPHP\App\Events\ComponentHTMLCollectedEvent;
+use Kenjiefx\ScratchPHP\App\Events\ComponentHTMLCreatedEvent;
 use Kenjiefx\ScratchPHP\App\Events\ComponentJSCollectedEvent;
+use Kenjiefx\ScratchPHP\App\Events\ComponentJSCreatedEvent;
 use Kenjiefx\ScratchPHP\App\Events\JSBuildCompletedEvent;
 use Kenjiefx\ScratchPHP\App\Events\ListensTo;
 use Kenjiefx\ScratchPHP\App\Events\PageBuildStartedEvent;
@@ -50,6 +53,19 @@ class PluncExtension implements ExtensionsInterface {
         $event->updateContent(
             $this->pluncAppBundleService->getBundle()
         );
+    }
+
+    #[ListensTo(ComponentHTMLCollectedEvent::class)]
+    public function onComponentCollected(ComponentHTMLCollectedEvent $event){
+        $originalContent = $event->getContent();
+        $proxyElement = $this->component::register(
+            name: $event->getComponent()->namespace,
+            content: $originalContent,
+            classlist: $event->getData()['classlist'] ?? '', 
+            as: $event->getData()['as'] ?? null,
+            tag: $event->getData()['tag'] ?? 'section'
+        );
+        $event->updateContent($proxyElement);
     }
 
 }

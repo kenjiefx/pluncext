@@ -12,6 +12,7 @@ use Kenjiefx\ScratchPHP\App\Configurations\ConfigurationInterface;
 use Kenjiefx\ScratchPHP\App\Themes\ThemeFactory;
 use Kenjiefx\ScratchPHP\App\Themes\ThemeService;
 use Kenjiefx\ScratchPHP\App\Themes\THemeModel;
+use \Kenjiefx\ScratchPHP\App\Components\ComponentModel;
 
 class Component {
 
@@ -36,6 +37,7 @@ class Component {
 
     public static function register(
         string $name, 
+        string $content,
         string $classlist = '', 
         string|null $as = null, 
         string $tag = 'section'
@@ -47,23 +49,28 @@ class Component {
         $unique = self::$pathShortNamePool->getShortName($componentPath->path);
         $normalizedPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $componentPath->path);
         if (!isset(self::$registry[$normalizedPath])) {
-            self::$registry[$normalizedPath] = $componentModel;
+            self::$registry[$normalizedPath] = [
+                "content" => $content,
+                "model" => $componentModel
+            ];
         }
         $alias = $as ? ' as '.$as : '';
-        echo "<{$tag} plunc-component=\"{$unique}{$alias}\" class=\"{$classlist}\"></{$tag}>";
+        return "<{$tag} plunc-component=\"{$unique}{$alias}\" class=\"{$classlist}\"></{$tag}>";
     }
 
     public static function export() {
         $completed = false;
         $accumulator = [];
         while (!$completed) {
-            foreach (self::$registry as $normalizedPath => $componentModel) {
+            foreach (self::$registry as $normalizedPath => $registryData) {
+                $componentModel = $registryData['model'];
+                $content = $registryData['content'];
                 $unique = self::$pathShortNamePool->getShortName($normalizedPath);
                 $name = $componentModel->namespace;
                 if (in_array($name, $accumulator)) continue;
                 array_push($accumulator, $name);
                 echo "<template plunc-name=\"{$unique}\" plunc-namespace=\"{$name}\">";
-                component($name);
+                echo $content;
                 echo '</template>';
             }
             $completed = count(self::$registry) === count($accumulator);

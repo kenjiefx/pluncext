@@ -34,6 +34,9 @@ class ModuleFactory {
         foreach ($importStatements as $importStatement) {
             $importData = $this->moduleDependencyService->parseImportStatement($importStatement);
             $importAbsPath = $this->moduleDependencyService->resolveImportPath($importData['location'], $absolutePath);
+            if ($this->isPluncApi($importAbsPath)) {
+                continue; // Skip Plunc API imports
+            }
             $dependencies[] = $this->dependencyFactory->create(
                 $importAbsPath, $importData['imports']
             );
@@ -52,6 +55,14 @@ class ModuleFactory {
     ): string {
         $pathInfo = pathinfo($absolutePath);
         return $pathInfo['filename'] ?? '';
+    }
+
+    private function isPluncApi(
+        string $absolutePath
+    ): bool {
+        return 
+            str_contains($absolutePath, "/interfaces/pluncx.js") || 
+            str_contains($absolutePath, "interfaces\pluncx.js");
     }
 
 }

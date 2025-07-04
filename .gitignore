@@ -1,3 +1,5 @@
 /vendor/
 /theme/**/*.js
 /dist/
+/src/Minifiers/TerserMinifier/src.js
+/src/Minifiers/TerserMinifier/min.js
