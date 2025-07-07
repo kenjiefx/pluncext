@@ -1,0 +1,7 @@
+{
+    "title":"Test PluncExt",
+    "template":"login",
+    "bindings": {
+        "logins/LoginServiceInterface": "services/SimpleLoginService"
+    }
+}
