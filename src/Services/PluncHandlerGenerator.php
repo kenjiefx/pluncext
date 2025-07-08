@@ -101,9 +101,9 @@ class PluncHandlerGenerator {
             $dependencyFullName = $dependencyModuleModel->name;
             // Special case for factory type
             if ($dependencyModuleModel->moduleRole === ModuleRole::FACTORY) {
-                $referenceDeclarations .= "const {$dependencyFullName} = {$dependencyShortName}.{$dependencyFullName};\n";
-            } else {
                 $referenceDeclarations .= "const {$dependencyFullName} = {$dependencyShortName};\n";
+            } else {
+                $referenceDeclarations .= "const {$dependencyFullName} = {$dependencyShortName}.{$dependencyFullName};\n";
             }
         }
         return str_replace("===IMPORT_VARIABLE_REFERENCE_MAPPINGS===", $referenceDeclarations, $placeholderScript);
