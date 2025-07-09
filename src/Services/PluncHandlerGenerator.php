@@ -16,7 +16,8 @@ class PluncHandlerGenerator {
         'Pluncx.block'       => '$block',
         'Pluncx.parent()'    => '$parent',
         'Pluncx.app()'       => '$app',
-        'Pluncx.component()' => '$this'
+        'Pluncx.component()' => '$this',
+        'Pluncx.reflect().namespace' => '',
     ];
 
     public function __construct(
@@ -44,6 +45,10 @@ class PluncHandlerGenerator {
         $scriptContent = $this->fileService->readFile($fileObject);
         $usedApiReferences = [];
         foreach (self::$PluncAPIReferences as $apiReference => $variableName) {
+            if ($apiReference === "Pluncx.reflect().namespace") {
+                // Skip this reference
+                continue;
+            }
             if (strpos($scriptContent, $apiReference) !== false) {
                 array_push($usedApiReferences, $variableName);
             }
@@ -52,9 +57,16 @@ class PluncHandlerGenerator {
     }
     
     public function convertApiReferences(
+        ModuleModel $moduleModel,
         string $scriptContent
     ){
         foreach (self::$PluncAPIReferences as $apiReference => $variableName) {
+            if ($apiReference === "Pluncx.reflect().namespace") {
+                $moduleDir = dirname($moduleModel->absolutePath);
+                $shortName = $this->pathShortNamePool->getShortName($moduleDir);
+                $scriptContent = str_replace($apiReference, '"' . $shortName . '"', $scriptContent);
+                continue;
+            }
             $scriptContent = str_replace($apiReference, $variableName, $scriptContent);
         }
         return $scriptContent;
@@ -116,7 +128,7 @@ class PluncHandlerGenerator {
         $handlerContent = "";
         $fileObject = $this->fileFactory->create($moduleModel->absolutePath);
         $fileContent = $this->fileService->readFile($fileObject);
-        $fileContent = $this->convertApiReferences($fileContent);
+        $fileContent = $this->convertApiReferences($moduleModel, $fileContent);
         # Process each lines
         $lines = explode("\n", $fileContent);
         $exports = [];

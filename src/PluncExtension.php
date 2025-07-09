@@ -2,6 +2,7 @@
 
 namespace Kenjiefx\Pluncext;
 
+use Kenjiefx\Pluncext\API\PluncX;
 use Kenjiefx\Pluncext\Services\ModuleCollectionService;
 use Kenjiefx\Pluncext\Services\PluncAppBundleService;
 use Kenjiefx\Pluncext\Services\TypeScriptService;
@@ -23,7 +24,8 @@ class PluncExtension implements ExtensionsInterface {
         public readonly PluncAppBundleService $pluncAppBundleService,
         public readonly PluncExtensionSettings $settings,
         public readonly TypeScriptService $typeScriptService,
-        public readonly Component $component
+        public readonly Component $component,
+        public readonly PluncX $pluncX
     ) {
         
     }
@@ -31,11 +33,11 @@ class PluncExtension implements ExtensionsInterface {
     #[ListensTo(SettingsRegisteredEvent::class)]
     public function onExtSettingsRegistered(array $settings): void {
         $this->settings->load($settings);
+        $this->typeScriptService->compile();
     }
 
     #[ListensTo(PageBuildStartedEvent::class)]
     public function beforePageBuild(PageBuildStartedEvent $event){
-        $this->typeScriptService->compile();
         $this->moduleCollectionService->collect();
         $this->pluncAppBundleService->newSession();
         $this->component::clear();
