@@ -6,7 +6,7 @@
         "target": "es2021",
         "experimentalDecorators": true,
         "emitDecoratorMetadata":true,
-        "outDir": "./theme",
+        "outDir": "./theme/nucleus/assets/plunc",
         "rootDir":"./theme"
     },
     "exclude": ["node_modules"],
