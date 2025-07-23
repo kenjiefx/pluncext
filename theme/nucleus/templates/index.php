@@ -1,0 +1,1 @@
+Hello index. <?php component('ProfileCard'); ?>

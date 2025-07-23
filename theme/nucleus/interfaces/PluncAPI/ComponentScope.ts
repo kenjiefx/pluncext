@@ -1,0 +1,1 @@
+export type ComponentScope<T extends {[key:string]: any}> = T
