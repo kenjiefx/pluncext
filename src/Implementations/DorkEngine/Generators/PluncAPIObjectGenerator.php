@@ -5,7 +5,7 @@ namespace Kenjiefx\Pluncext\Implementations\DorkEngine;
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleRole;
 
-class PluncAPIWrapperGenerator {
+class PluncAPIObjectGenerator {
 
     public function __construct(
 

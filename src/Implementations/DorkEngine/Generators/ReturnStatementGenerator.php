@@ -1,6 +1,6 @@
 <?php 
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine;
+namespace Kenjiefx\Pluncext\Implementations\DorkEngine\Generators;
 
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleRole;

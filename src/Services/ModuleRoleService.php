@@ -23,7 +23,8 @@ class ModuleRoleService {
             ModuleRole::REPOSITORY => "{$themeDir}/repositories",
             ModuleRole::FACTORY => "{$themeDir}/factories",
             ModuleRole::HELPER => "{$themeDir}/blocks",
-            ModuleRole::COMPONENT => "{$themeDir}/components"
+            ModuleRole::COMPONENT => "{$themeDir}/components",
+            ModuleRole::ROOTAPP => "{$themeDir}/templates"
         };
     }
 
@@ -40,7 +41,8 @@ class ModuleRoleService {
             ModuleRole::REPOSITORY => 'repositories',
             ModuleRole::FACTORY => 'factories',
             ModuleRole::HELPER => 'blocks',
-            ModuleRole::COMPONENT => 'components'
+            ModuleRole::COMPONENT => 'components',
+            ModuleRole::ROOTAPP => 'templates'
         };
     }
 
@@ -65,6 +67,7 @@ class ModuleRoleService {
             'factories' => ModuleRole::FACTORY,
             'blocks' => ModuleRole::HELPER,
             'components' => ModuleRole::COMPONENT,
+            'templates' => ModuleRole::ROOTAPP
         ];
         foreach ($directoryRoleMap as $folder => $role) {
             $expectedPath = "{$themeDir}/{$folder}";
@@ -121,7 +124,8 @@ class ModuleRoleService {
             ModuleRole::REPOSITORY->value => "{$themeDir}/repositories",
             ModuleRole::FACTORY->value => "{$themeDir}/factories",
             ModuleRole::HELPER->value => "{$themeDir}/blocks",
-            ModuleRole::COMPONENT->value => "{$themeDir}/components"
+            ModuleRole::COMPONENT->value => "{$themeDir}/components",
+            ModuleRole::ROOTAPP->value => "{$themeDir}/templates"
         ];
     }
 

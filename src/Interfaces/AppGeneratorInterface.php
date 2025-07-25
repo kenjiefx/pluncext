@@ -6,12 +6,16 @@ use Kenjiefx\Pluncext\Modules\ModuleModel;
 use Kenjiefx\Pluncext\Modules\ModuleRegistry;
 use Kenjiefx\ScratchPHP\App\Pages\PageModel;
 
-interface HandlerGeneratorInterface {
+interface AppGeneratorInterface {
 
-    public function generateHandler(
+    public function generateAppHandler(
         ModuleRegistry $moduleRegistry,
         ModuleModel $moduleModel,
         PageModel $pageModel
     ): string;
 
+    public function generateAppMain(
+        ModuleRegistry $moduleRegistry,
+        PageModel $pageModel
+    ): void;
 }

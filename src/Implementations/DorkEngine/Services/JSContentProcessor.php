@@ -1,6 +1,6 @@
 <?php 
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine;
+namespace Kenjiefx\Pluncext\Implementations\DorkEngine\Services;
 
 class JSContentProcessor {
 

@@ -7,6 +7,11 @@
         <?php template_assets(); ?>
     </head>
     <body>
-        <?php template_content(); ?>
+        <template plunc-name="app">
+            <main plunc-component="App"></main>
+        </template>
+        <template plunc-name="App">
+            <?php template_content(); ?>
+        </template>
     </body>
 </html>

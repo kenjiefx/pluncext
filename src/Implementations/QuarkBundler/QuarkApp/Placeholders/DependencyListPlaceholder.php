@@ -1,19 +1,26 @@
-<?php
+<?php 
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine;
+namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Placeholders;
 
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleRole;
 use Kenjiefx\Pluncext\Services\NameAliasPoolService;
 
-class DependencyStatementGenerator {
+class DependencyListPlaceholder {
+
+    public const VALUE = "<< HANDLER_DEPENDENCY_LIST >>";
 
     public function __construct(
         private NameAliasPoolService $nameAliasPoolService
     ) {}
 
-    public function createListOfDependencies(
-        ModuleIterator $dependencyModules
+    public function getValue(): string {
+        return self::VALUE;
+    }
+
+    public function resolve(
+        ModuleIterator $dependencyModules,
+        string $scriptContent
     ) {
         $dependencies = [];
         foreach ($dependencyModules as $dependencyModule) {
@@ -49,7 +56,12 @@ class DependencyStatementGenerator {
                 $dependencies[] = $nameAlias;
             }
         }
-        return implode(',', $dependencies);
+        $commaSeparatedDependencies = implode(',', $dependencies);
+        return str_replace(
+            self::VALUE,
+            $commaSeparatedDependencies,
+            $scriptContent
+        );
     }
 
 }

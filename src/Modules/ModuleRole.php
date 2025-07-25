@@ -13,5 +13,6 @@ enum ModuleRole: string {
     case FACTORY = 'factory';
     case HELPER = 'helper';
     case COMPONENT = 'component';
+    case ROOTAPP = 'rootapp';
 
 }

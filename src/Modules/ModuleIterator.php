@@ -31,4 +31,12 @@ class ModuleIterator implements \Iterator {
         return isset($this->modules[$this->position]);
     }
 
+    public function count(): int {
+        return count($this->modules);
+    }
+
+    public function add(ModuleModel $module): void {
+        $this->modules[] = $module;
+    }
+
 }

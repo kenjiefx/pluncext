@@ -3,9 +3,7 @@
 namespace Kenjiefx\Pluncext\Services;
 
 use Kenjiefx\Pluncext\Implementations\DorkEngine\DorkEngine;
-use Kenjiefx\Pluncext\Interfaces\HandlerGeneratorInterface;
 use Kenjiefx\Pluncext\Modules\ModuleRegistry;
-use Kenjiefx\ScratchPHP\App\Components\ComponentRegistry;
 use Kenjiefx\ScratchPHP\App\Interfaces\ThemeServiceInterface;
 use Kenjiefx\ScratchPHP\App\Pages\PageModel;
 
@@ -13,7 +11,7 @@ class PluncAppBundler {
 
     public function __construct(
         private ThemeServiceInterface $themeService,
-        private DorkEngine $handlerGeneratorInterface
+        private DorkEngine $appGeneratorInterface
     ) {}
 
     public function bundle(
@@ -33,7 +31,7 @@ class PluncAppBundler {
                     "Module not found for component: {$component->name} at path: {$componentTsPath}"
                 );
             }
-            $handlerScript = $this->handlerGeneratorInterface->generateHandler(
+            $handlerScript = $this->appGeneratorInterface->generateAppHandler(
                 $moduleRegistry, $moduleModel, $pageModel
             );
             $bundledScripts[$componentTsPath] = $handlerScript;
@@ -41,7 +39,7 @@ class PluncAppBundler {
                 $dependencyTsPath = $dependencyModel->absolutePath;
                 if (isset($bundledScripts[$dependencyTsPath])) return;
                 $dependencyModule = $moduleRegistry->findByPath($dependencyTsPath);
-                $handlerScript = $this->handlerGeneratorInterface->generateHandler(
+                $handlerScript = $this->appGeneratorInterface->generateAppHandler(
                     $moduleRegistry, $dependencyModule, $pageModel
                 );
                 $bundledScripts[$dependencyTsPath] = $handlerScript;
@@ -53,14 +51,14 @@ class PluncAppBundler {
             echo $content;
             echo "</pre>";
         }
+
+        $this->appGeneratorInterface->generateAppMain(
+            $moduleRegistry, $pageModel
+        );
     }
 
     public function convertJsToTs(string $jsPath) {
-        // Convert the JS file to TS
-        // This is a placeholder for the actual conversion logic
-        // You might use a library or custom logic to convert JS to TS
         $tsPath = str_replace('.js', '.ts', $jsPath);
-        // Assume conversion is done here
         return $tsPath;
     }
 

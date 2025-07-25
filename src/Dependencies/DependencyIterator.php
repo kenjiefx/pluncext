@@ -31,4 +31,12 @@ class DependencyIterator implements \Iterator {
         return isset($this->dependencies[$this->position]);
     }
 
+    public function count(): int {
+        return count($this->dependencies);
+    }
+
+    public function add(DependencyModel $dependency): void {
+        $this->dependencies[] = $dependency;
+    }
+
 }

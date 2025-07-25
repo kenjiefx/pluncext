@@ -1,6 +1,6 @@
 <?php 
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine;
+namespace Kenjiefx\Pluncext\Implementations\DorkEngine\Services;
 
 use Kenjiefx\Pluncext\Modules\ModuleModel;
 use Kenjiefx\Pluncext\Services\ModuleRoleService;
