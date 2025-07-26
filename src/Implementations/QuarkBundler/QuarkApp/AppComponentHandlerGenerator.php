@@ -1,13 +1,12 @@
-<?php 
+<?php
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine;
+namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp;
 
-use Kenjiefx\Pluncext\Dependencies\DependencyModel;
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Generators\DependencyListGenerator;
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Generators\ReturnStatementGenerator;
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Services\ConstructorService;
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Services\JSContentProcessor;
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Services\JSOutputService;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators\DependencyListGenerator;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators\HandlerObjectConstructorGenerator;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\JSContentProcessor;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\TSClassConstructorParser;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\TscOutputService;
 use Kenjiefx\Pluncext\Modules\ModuleFactory;
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleModel;
@@ -19,7 +18,7 @@ use Kenjiefx\ScratchPHP\App\Interfaces\ThemeServiceInterface;
 use Kenjiefx\ScratchPHP\App\Pages\PageModel;
 use Symfony\Component\Filesystem\Filesystem;
 
-class DorkAppMainService {
+class AppComponentHandlerGenerator {
 
     public function __construct(
         private ThemeServiceInterface $themeService,
@@ -27,14 +26,14 @@ class DorkAppMainService {
         private NameAliasPoolService $nameAliasPoolService,
         private ModuleRoleService $moduleRoleServices,
         private DependencyListGenerator $dependencyListGenerator,
-        private ConstructorService $constructorService,
-        private ReturnStatementGenerator $returnStatementGenerator,
+        private TSClassConstructorParser $tsClassConstructorParser,
+        private HandlerObjectConstructorGenerator $handlerObjectConstructorGenerator,
         private JSContentProcessor $jsContentProcessor,
-        private JSOutputService $jsOutputService,
+        private TscOutputService $tscOutputService,
         private Filesystem $filesystem
     ) {}
 
-    public function generateAppMain(
+    public function generateHandler(
         ModuleRegistry $moduleRegistry,
         PageModel $pageModel
     ) {
@@ -57,16 +56,14 @@ class DorkAppMainService {
         $placeHolderScript = $this->setConstructorStatement(
             $dependencyModules, $moduleModel->name, $placeHolderScript
         );
-        echo "<pre>";
-        echo $placeHolderScript;
-        echo "</pre>";
+        return $placeHolderScript;
     }
 
     public function getDependencies(
         ModuleModel $moduleModel,
         ModuleRegistry $moduleRegistry
     ) {
-        return $this->constructorService->getDependencies(
+        return $this->tsClassConstructorParser->getDependencies(
             $moduleModel, $moduleRegistry
         );
     }
@@ -95,15 +92,12 @@ class DorkAppMainService {
         string $classNameDeclared,
         string $placeholderScript
     ) {
-        $returnStatement = $this->returnStatementGenerator->generateAsNewInstance(
+        $instanceConstructor = $this->handlerObjectConstructorGenerator->generateAsNewInstance(
             $classNameDeclared, $dependencyModules
-        );
-        $constructorStatement = str_replace(
-            "return ", "", $returnStatement
         );
         return str_replace(
             "===HANDLER_CONSTRUCTION_STATEMENT===",
-            $constructorStatement,
+            $instanceConstructor,
             $placeholderScript
         );
     }
@@ -185,7 +179,7 @@ class DorkAppMainService {
         ModuleModel $moduleModel,
         PageModel $pageModel
     ) {
-        return $this->jsOutputService->locateModuleJsOutput(
+        return $this->tscOutputService->locateModuleJsOutput(
             $moduleModel, $pageModel->theme
         );
     }
@@ -216,6 +210,5 @@ class DorkAppMainService {
             $this->filesystem->readFile($jsPath)
         );
     }
-
 
 }

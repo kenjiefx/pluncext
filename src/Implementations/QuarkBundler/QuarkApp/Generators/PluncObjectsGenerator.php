@@ -1,11 +1,8 @@
 <?php
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine;
+namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators;
 
-use Kenjiefx\Pluncext\Modules\ModuleIterator;
-use Kenjiefx\Pluncext\Modules\ModuleRole;
-
-class PluncAPIObjectGenerator {
+class PluncObjectsGenerator {
 
     public function __construct(
 
@@ -32,9 +29,9 @@ class PluncAPIObjectGenerator {
             }
             async patch(elementName) { 
                 if (elementName === undefined) {
-                    return await this.patch();
+                    return await this.patchApi();
                 }
-                return await this.patch(elementName); 
+                return await this.patchApi(elementName); 
             } 
         }
         JS;

@@ -1,26 +1,24 @@
 <?php 
 
-namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Placeholders;
+namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators;
 
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleRole;
 use Kenjiefx\Pluncext\Services\NameAliasPoolService;
 
-class DependencyListPlaceholder {
-
-    public const VALUE = "<< HANDLER_DEPENDENCY_LIST >>";
+class DependencyListGenerator {
 
     public function __construct(
         private NameAliasPoolService $nameAliasPoolService
     ) {}
-
-    public function getValue(): string {
-        return self::VALUE;
-    }
-
-    public function resolve(
-        ModuleIterator $dependencyModules,
-        string $scriptContent
+    
+    /**
+     * Returns a comma-separated list of dependencies for the given modules.
+     * @param ModuleIterator $dependencyModules
+     * @return string
+     */
+    public function generate(
+        ModuleIterator $dependencyModules
     ) {
         $dependencies = [];
         foreach ($dependencyModules as $dependencyModule) {
@@ -56,12 +54,7 @@ class DependencyListPlaceholder {
                 $dependencies[] = $nameAlias;
             }
         }
-        $commaSeparatedDependencies = implode(',', $dependencies);
-        return str_replace(
-            self::VALUE,
-            $commaSeparatedDependencies,
-            $scriptContent
-        );
+        return implode(',', $dependencies);
     }
 
 }

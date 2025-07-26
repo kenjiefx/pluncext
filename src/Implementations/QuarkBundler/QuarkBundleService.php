@@ -5,6 +5,7 @@ namespace Kenjiefx\Pluncext\Implementations\QuarkBundler;
 use Kenjiefx\Pluncext\Dependencies\DependencyIterator;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\BundleItem\BundleItemModel;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\BundleItem\BundleItemRegistry;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\QuarkHandlerGenerator;
 use Kenjiefx\Pluncext\Interfaces\ScriptBundlerInterface;
 use Kenjiefx\Pluncext\Modules\ModuleRegistry;
 use Kenjiefx\Pluncext\Modules\ModuleRole;
@@ -23,6 +24,25 @@ class QuarkBundleService implements ScriptBundlerInterface {
         PageModel $pageModel
     ): string {
         $bundledItems = new BundleItemRegistry();
+        $resultScript = $this->handlerGenerator->generateStarterScript();
+        $resultScript .= $this->handlerGenerator->generatePluncApiScripts();
+        $this->bundleComponents(
+            $moduleRegistry, $pageModel, $bundledItems
+        );
+        foreach ($bundledItems->getAll() as $bundleItem) {
+            $resultScript .= $bundleItem->content . "\n";
+        }
+        $resultScript .= $this->handlerGenerator->generateAppComponentHandler(
+            $moduleRegistry, $pageModel
+        );
+        return $resultScript;
+    }
+
+    public function bundleComponents(
+        ModuleRegistry $moduleRegistry,
+        PageModel $pageModel,
+        BundleItemRegistry $bundledItems
+    ) {
         foreach ($pageModel->componentRegistry->getAll() as $component) {
             $componentJsPath = $this->themeService->getComponentJsPath(
                 $pageModel->theme, $component
@@ -38,15 +58,18 @@ class QuarkBundleService implements ScriptBundlerInterface {
                     "Module not found at {$componentTsPath}"
                 );
             }
-            $handlerScript = $this->handlerGenerator->generateHandler(
-                
+            $dependencies = $moduleModel->dependencies;
+            $this->bundleDependencies(
+                $dependencies, $moduleRegistry, $pageModel, $bundledItems
+            );
+            $handlerScript = $this->handlerGenerator->generateRegularHandler(
+                $moduleRegistry, $moduleModel, $pageModel
             );
             $bundledItem = new BundleItemModel(
                 $componentTsPath, $handlerScript
             );
             $bundledItems->add($bundledItem);
         }
-        return "";
     }
 
     public function bundleDependencies(
@@ -71,8 +94,12 @@ class QuarkBundleService implements ScriptBundlerInterface {
                 // Component handler will be handled separately
                 continue;
             }
-            $handlerScript = $this->handlerGenerator->generateHandler(
-                
+            $dependencies = $dependencyModule->dependencies;
+            $this->bundleDependencies(
+                $dependencies, $moduleRegistry, $pageModel, $bundledItems
+            );
+            $handlerScript = $this->handlerGenerator->generateRegularHandler(
+                $moduleRegistry, $dependencyModule, $pageModel
             );
             $bundledItem = new BundleItemModel(
                 $dependencyTsPath, $handlerScript

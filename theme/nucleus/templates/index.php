@@ -1,1 +1,3 @@
-Hello index. <?php component('ProfileCard'); ?>
+Hello index. <?php component('ProfileCard', [
+    "classlist" => "profile-card",
+]); ?>

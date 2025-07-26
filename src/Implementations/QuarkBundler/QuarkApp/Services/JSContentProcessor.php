@@ -1,6 +1,6 @@
 <?php 
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine\Services;
+namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services;
 
 class JSContentProcessor {
 

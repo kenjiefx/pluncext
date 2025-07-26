@@ -1,12 +1,12 @@
 <?php 
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine;
+namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp;
 
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Generators\DependencyListGenerator;
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Generators\ReturnStatementGenerator;
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Services\ConstructorService;
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Services\JSContentProcessor;
-use Kenjiefx\Pluncext\Implementations\DorkEngine\Services\JSOutputService;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators\DependencyListGenerator;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators\HandlerObjectConstructorGenerator;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\JSContentProcessor;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\TSClassConstructorParser;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\TscOutputService;
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleModel;
 use Kenjiefx\Pluncext\Modules\ModuleRegistry;
@@ -15,15 +15,15 @@ use Kenjiefx\Pluncext\Services\NameAliasPoolService;
 use Kenjiefx\ScratchPHP\App\Pages\PageModel;
 use Symfony\Component\Filesystem\Filesystem;
 
-class DorkHandlerService {
+class RegularHandlerGenerator {
 
     public function __construct(
-        private ConstructorService $constructorService,
-        private JSOutputService $jsOutputService,
+        private TSClassConstructorParser $tsClassConstructorService,
+        private TscOutputService $tscOutputService,
         private NameAliasPoolService $nameAliasPoolService,
         private JSContentProcessor $jsContentProcessor,
         private Filesystem $filesystem,
-        private ReturnStatementGenerator $returnStatementGenerator,
+        private HandlerObjectConstructorGenerator $handlerObjectConstructorGenerator,
         private DependencyListGenerator $dependencyListGenerator
     ) {}
 
@@ -75,13 +75,15 @@ class DorkHandlerService {
         string $placeholderScript
     ) {
         if ($moduleModel->moduleRole === ModuleRole::FACTORY) {
-            $returnStatement = $this->returnStatementGenerator->generateAsFactoryInstance(
+            $newInstance = $this->handlerObjectConstructorGenerator->generateAsNewInstance(
                 $classNameDeclared, $dependencyModules
             );
+            $returnStatement = "return class ___ { __(){ $newInstance } } ";
         } else {
-            $returnStatement = $this->returnStatementGenerator->generateAsNewInstance(
+            $newInstance = $this->handlerObjectConstructorGenerator->generateAsNewInstance(
                 $classNameDeclared, $dependencyModules
             );
+            $returnStatement = "return $newInstance"; // No class wrapper for regular handlers
         }
         $returnStatement = "    " . $returnStatement;
         return str_replace(
@@ -104,11 +106,29 @@ class DorkHandlerService {
         );
     }
 
+    public function setScopeDefaultFields(
+        ModuleModel $moduleModel,
+        string $placeholderScript
+    ) {
+        if ($moduleModel->moduleRole !== ModuleRole::COMPONENT) {
+            return str_replace(
+                "===SCOPE_DEFAULT_FIELDS===",
+                "    //",
+                $placeholderScript
+            );
+        }
+        return str_replace(
+            "===SCOPE_DEFAULT_FIELDS===",
+            "    \$scope.state = 'empty';",
+            $placeholderScript
+        );
+    }
+
     public function getJsPath(
         ModuleModel $moduleModel,
         PageModel $pageModel
     ) {
-        return $this->jsOutputService->locateModuleJsOutput(
+        return $this->tscOutputService->locateModuleJsOutput(
             $moduleModel, $pageModel->theme
         );
     }
@@ -125,7 +145,7 @@ class DorkHandlerService {
         ModuleModel $moduleModel,
         ModuleRegistry $moduleRegistry
     ) {
-        return $this->constructorService->getDependencies(
+        return $this->tsClassConstructorService->getDependencies(
             $moduleModel, $moduleRegistry
         );
     }

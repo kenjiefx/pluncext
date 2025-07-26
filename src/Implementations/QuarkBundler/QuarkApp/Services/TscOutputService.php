@@ -1,6 +1,6 @@
 <?php 
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine\Services;
+namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services;
 
 use Kenjiefx\Pluncext\Modules\ModuleModel;
 use Kenjiefx\Pluncext\Services\ModuleRoleService;
@@ -13,7 +13,7 @@ use Symfony\Component\Filesystem\Filesystem;
  * This services manages the Javascript files that are produced by 
  * running the `tsc` command on the TypeScript files.
  */
-class JSOutputService {
+class TscOutputService {
 
     public function __construct(
         private Filesystem $filesystem,
@@ -60,6 +60,13 @@ class JSOutputService {
         return str_replace('.ts', '.js', $tempPath);
     }
 
+    /**
+     * Locate the output path of the tsc command in the theme's assets directory.
+     * 
+     * @param PageModel $pageModel
+     * @param ThemeModel $themeModel
+     * @return string The absolute path to the JavaScript output file.
+     */
     public function getOutputDir(
         ThemeModel $themeModel
     ) {

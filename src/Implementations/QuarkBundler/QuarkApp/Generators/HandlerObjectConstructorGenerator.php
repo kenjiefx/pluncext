@@ -1,23 +1,27 @@
 <?php 
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine\Generators;
+namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators;
 
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleRole;
 use Kenjiefx\Pluncext\Services\NameAliasPoolService;
 
-class ReturnStatementGenerator {
+class HandlerObjectConstructorGenerator {
 
     public function __construct(
         private NameAliasPoolService $nameAliasPoolService
     ) {}
     
     /**
-     * Creates a return statement as new instance
+     * Creates a constructor statement, which is used to instantiate a new object
+     * @example
+     * ```js
+     * new MyClass($scope, new BlockService($block), $this);
+     * ``
      *
      * @param string $className The class name to instantiate.
      * @param ModuleIterator $dependencyModules The modules that are dependencies.
-     * @return string The return statement for creating a new instance.
+     * @return string The constructor statement
      */
     public function generateAsNewInstance(
         string $className,
@@ -64,18 +68,7 @@ class ReturnStatementGenerator {
             }
         }
         $argsString = implode(', ', $constructorArgs);
-        // Generate a return statement for creating a new instance
-        return "return new {$className}({$argsString});";
-    }
-
-    public function generateAsFactoryInstance(
-        string $className,
-        ModuleIterator $dependencyModules
-    ) {
-        $asNewInstance = $this->generateAsNewInstance(
-            $className, $dependencyModules
-        );
-        return "return class ___ { __(){ $asNewInstance } } ";
+        return "new {$className}({$argsString});";
     }
 
 }

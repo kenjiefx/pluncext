@@ -1,6 +1,6 @@
 <?php 
 
-namespace Kenjiefx\Pluncext\Implementations\DorkEngine\Services;
+namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services;
 
 use Kenjiefx\Pluncext\Dependencies\DependencyRegistry;
 use Kenjiefx\Pluncext\Modules\ModuleModel;
@@ -9,7 +9,7 @@ use Kenjiefx\Pluncext\Services\TypeScriptParser;
 use Symfony\Component\Filesystem\Filesystem;
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 
-class ConstructorService {
+class TSClassConstructorParser {
 
     public function __construct(
         private TypeScriptParser $typeScriptParser,
@@ -17,7 +17,7 @@ class ConstructorService {
     ) {}
     
     /**
-     * Summary of getDependencies
+     * Returns the dependencies of a module based on the types declared in its constructor.
      * @param ModuleModel $moduleModel
      * @param ModuleRegistry $moduleRegistry
      * @return ModuleIterator

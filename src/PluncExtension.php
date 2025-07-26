@@ -2,13 +2,17 @@
 
 namespace Kenjiefx\Pluncext;
 
-use Kenjiefx\Pluncext\Implementations\DorkEngine\DorkEngine;
-use Kenjiefx\Pluncext\Interfaces\HandlerGeneratorInterface;
+use Kenjiefx\Pluncext\ComponentProxy\ComponentProxyModel;
+use Kenjiefx\Pluncext\ComponentProxy\ComponentProxyRegistry;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkBundleService;
 use Kenjiefx\Pluncext\Modules\ModuleRegistry;
+use Kenjiefx\Pluncext\Services\ComponentService;
 use Kenjiefx\Pluncext\Services\ModuleCollector;
-use Kenjiefx\Pluncext\Services\PluncAppBundler;
+use Kenjiefx\ScratchPHP\App\Events\Instances\ComponentHTMLCollectedEvent;
 use Kenjiefx\ScratchPHP\App\Events\Instances\ExtensionSettingsRegisterEvent;
+use Kenjiefx\ScratchPHP\App\Events\Instances\PageAfterBuildEvent;
 use Kenjiefx\ScratchPHP\App\Events\Instances\PageBeforeBuildEvent;
+use Kenjiefx\ScratchPHP\App\Events\Instances\PageHTMLBuildCompleteEvent;
 use Kenjiefx\ScratchPHP\App\Events\Instances\PageJSBuildCompleteEvent;
 use Kenjiefx\ScratchPHP\App\Events\ListensTo;
 use Kenjiefx\ScratchPHP\App\Extensions\ExtensionInterface;
@@ -16,17 +20,18 @@ use Kenjiefx\ScratchPHP\App\Extensions\ExtensionSettings;
 use Kenjiefx\ScratchPHP\App\Interfaces\ConfigurationInterface;
 use Kenjiefx\ScratchPHP\App\Interfaces\ThemeServiceInterface;
 use Kenjiefx\ScratchPHP\App\Themes\ThemeModel;
-use Kenjiefx\ScratchPHP\Container;
 
 class PluncExtension implements ExtensionInterface {
 
     private ModuleRegistry $moduleRegistry;
+    private ComponentProxyRegistry $componentProxyRegistry;
 
     public function __construct(
         private ModuleCollector $moduleCollector,
         private ConfigurationInterface $configuration,
         private ThemeServiceInterface $themeService,
-        private PluncAppBundler $pluncAppBundler
+        private QuarkBundleService $scriptBundlerInterface,
+        private ComponentService $componentService
     ) {}
     
     #[ListensTo(ExtensionSettingsRegisterEvent::class)]
@@ -36,6 +41,7 @@ class PluncExtension implements ExtensionInterface {
 
     #[ListensTo(PageBeforeBuildEvent::class)]
     public function beforePageBuild(PageBeforeBuildEvent $event): void {
+        $this->componentProxyRegistry = new ComponentProxyRegistry();
         $this->moduleRegistry = $this->moduleCollector->collect(
             $this->getThemeDir()
         );
@@ -43,9 +49,39 @@ class PluncExtension implements ExtensionInterface {
 
     #[ListensTo(PageJSBuildCompleteEvent::class)]
     public function pageJsBuild(PageJSBuildCompleteEvent $event) {
-        $this->pluncAppBundler->bundle(
+        $event->content = $this->scriptBundlerInterface->bundle(
             $this->moduleRegistry,
             $event->pageModel
+        );
+    }
+
+    #[ListensTo(ComponentHTMLCollectedEvent::class)]
+    public function onComponentCollected(ComponentHTMLCollectedEvent $event){
+        $pageModel = $event->page;
+        $component = $event->component;
+        $proxy = new ComponentProxyModel(
+            $component, $event->content
+        );
+        $this->componentProxyRegistry->register($proxy);
+        $content = $this->componentService->createReferenceElement(
+            $pageModel, 
+            $component->name, 
+            $component->data["classlist"] ?? "",
+            $component->adata["as"] ?? null,
+            $component->data["tag"] ?? "section"
+        );
+        $event->content = $content;
+    }
+
+    #[ListensTo(PageHTMLBuildCompleteEvent::class)]
+    public function onPageHtmlBuildComponent(PageHTMLBuildCompleteEvent $event) {
+        $componentTemplates = $this->componentService->createTemplateElements(
+            $event->pageModel, $this->componentProxyRegistry
+        );
+        $event->content = str_replace(
+            "</body>",
+            "{$componentTemplates}\n</body>",
+            $event->content
         );
     }
 
