@@ -2,6 +2,7 @@
 
 namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp;
 
+use Kenjiefx\Pluncext\Bindings\BindingRegistry;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\AppComponentHandlerGenerator;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators\PluncObjectsGenerator;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\RegularHandlerGenerator;
@@ -29,11 +30,13 @@ class QuarkHandlerGenerator {
     }
 
     public function generateRegularHandler(
+        BindingRegistry $bindingRegistry,
         ModuleRegistry $moduleRegistry,
         ModuleModel $moduleModel,
         PageModel $pageModel
     ) {
         return $this->regularHandlerGenerator->generateHandler(
+            $bindingRegistry,
             $moduleRegistry, 
             $moduleModel, 
             $pageModel

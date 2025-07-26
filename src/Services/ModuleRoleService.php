@@ -46,6 +46,21 @@ class ModuleRoleService {
         };
     }
 
+    public function getAllBaseDirNames() {
+        return [
+            "services",
+            "controllers",
+            "interfaces",
+            "views",
+            "models",
+            "repositories",
+            "factories",
+            "blocks",
+            "components",
+            "templates"
+        ];
+    }
+
     /**
      * Get the ModuleRole based on the directory path
      * @param string $path

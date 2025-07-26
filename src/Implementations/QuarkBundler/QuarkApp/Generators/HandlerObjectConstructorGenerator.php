@@ -2,14 +2,17 @@
 
 namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators;
 
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\PluncObjectService;
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleRole;
 use Kenjiefx\Pluncext\Services\NameAliasPoolService;
+use Kenjiefx\ScratchPHP\App\Pages\PageModel;
 
 class HandlerObjectConstructorGenerator {
 
     public function __construct(
-        private NameAliasPoolService $nameAliasPoolService
+        private NameAliasPoolService $nameAliasPoolService,
+        private PluncObjectService $pluncObjectService
     ) {}
     
     /**
@@ -25,13 +28,14 @@ class HandlerObjectConstructorGenerator {
      */
     public function generateAsNewInstance(
         string $className,
-        ModuleIterator $dependencyModules
+        ModuleIterator $dependencyModules,
+        PageModel $pageModel
     ) {
         $constructorArgs = [];
         foreach ($dependencyModules as $dependencyModule) {
             if ($dependencyModule->moduleRole === ModuleRole::INTERFACE) {
                 $statement = "";
-                switch ($dependencyModule->name) {
+                switch ($this->pluncObjectService->getPluncObjectName($pageModel->theme, $dependencyModule)) {
                     case "ComponentScope": 
                         $statement = "\$scope";
                         break;

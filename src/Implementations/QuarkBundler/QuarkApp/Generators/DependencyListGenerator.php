@@ -2,14 +2,17 @@
 
 namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators;
 
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\PluncObjectService;
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleRole;
 use Kenjiefx\Pluncext\Services\NameAliasPoolService;
+use Kenjiefx\ScratchPHP\App\Pages\PageModel;
 
 class DependencyListGenerator {
 
     public function __construct(
-        private NameAliasPoolService $nameAliasPoolService
+        private NameAliasPoolService $nameAliasPoolService,
+        private PluncObjectService $pluncObjectService
     ) {}
     
     /**
@@ -18,13 +21,14 @@ class DependencyListGenerator {
      * @return string
      */
     public function generate(
+        PageModel $pageModel,
         ModuleIterator $dependencyModules
     ) {
         $dependencies = [];
         foreach ($dependencyModules as $dependencyModule) {
             if ($dependencyModule->moduleRole === ModuleRole::INTERFACE) {
                 $nameAlias = "";
-                switch ($dependencyModule->name) {
+                switch ($this->pluncObjectService->getPluncObjectName($pageModel->theme, $dependencyModule)) {
                     case "ComponentScope": 
                         $nameAlias = "\$scope";
                         break;

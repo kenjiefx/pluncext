@@ -54,7 +54,10 @@ class AppComponentHandlerGenerator {
             $pageModel, $moduleRegistry, $dependencyModules, $placeHolderScript
         );
         $placeHolderScript = $this->setConstructorStatement(
-            $dependencyModules, $moduleModel->name, $placeHolderScript
+            $pageModel,
+            $dependencyModules, 
+            $moduleModel->name, 
+            $placeHolderScript
         );
         return $placeHolderScript;
     }
@@ -79,7 +82,9 @@ class AppComponentHandlerGenerator {
             $pageModel, $updatedDependencies, $moduleRegistry
         );
         $dependencyStatement = 
-            $this->dependencyListGenerator->generate($updatedDependencies);
+            $this->dependencyListGenerator->generate(
+                $pageModel, $updatedDependencies
+            );
         return str_replace(
             "===HANDLER_DEPENDENCIES===",
             $dependencyStatement,
@@ -88,12 +93,13 @@ class AppComponentHandlerGenerator {
     }
 
     public function setConstructorStatement(
+        PageModel $pageModel,
         ModuleIterator $dependencyModules,
         string $classNameDeclared,
         string $placeholderScript
     ) {
         $instanceConstructor = $this->handlerObjectConstructorGenerator->generateAsNewInstance(
-            $classNameDeclared, $dependencyModules
+            $classNameDeclared, $dependencyModules, $pageModel
         );
         return str_replace(
             "===HANDLER_CONSTRUCTION_STATEMENT===",

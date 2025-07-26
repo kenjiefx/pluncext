@@ -2,6 +2,7 @@
 
 namespace Kenjiefx\Pluncext\Interfaces;
 
+use Kenjiefx\Pluncext\Bindings\BindingRegistry;
 use Kenjiefx\Pluncext\Modules\ModuleRegistry;
 use Kenjiefx\ScratchPHP\App\Pages\PageModel;
 
@@ -15,6 +16,7 @@ interface ScriptBundlerInterface {
      * @return string The bundled script as a string.
      */
     public function bundle(
+        BindingRegistry $bindingRegistry,
         ModuleRegistry $moduleRegistry,
         PageModel $pageModel
     ): string;

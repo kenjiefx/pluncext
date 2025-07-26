@@ -2,11 +2,14 @@
 
 namespace Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp;
 
+use Kenjiefx\Pluncext\Bindings\BindingRegistry;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators\DependencyListGenerator;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Generators\HandlerObjectConstructorGenerator;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\JSContentProcessor;
+use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\PluncObjectService;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\TSClassConstructorParser;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkApp\Services\TscOutputService;
+use Kenjiefx\Pluncext\Modules\ModuleFactory;
 use Kenjiefx\Pluncext\Modules\ModuleIterator;
 use Kenjiefx\Pluncext\Modules\ModuleModel;
 use Kenjiefx\Pluncext\Modules\ModuleRegistry;
@@ -24,32 +27,61 @@ class RegularHandlerGenerator {
         private JSContentProcessor $jsContentProcessor,
         private Filesystem $filesystem,
         private HandlerObjectConstructorGenerator $handlerObjectConstructorGenerator,
-        private DependencyListGenerator $dependencyListGenerator
+        private DependencyListGenerator $dependencyListGenerator,
+        private PluncObjectService $pluncObjectService,
+        private ModuleFactory $moduleFactory
     ) {}
 
     public function generateHandler(
+        BindingRegistry $bindingRegistry,
         ModuleRegistry $moduleRegistry,
         ModuleModel $moduleModel,
         PageModel $pageModel
     ): string {
+        $interfaceModulePath = null;
         if ($moduleModel->moduleRole === ModuleRole::INTERFACE) {
-            return "";
+            if ($this->isNonImplementableInterface($pageModel, $moduleModel)) {
+                return "";
+            }
+            $moduleInterfaceName = $moduleModel->name;
+            $interfaceModulePath = $moduleModel->absolutePath;
+            $implementationModule = $bindingRegistry->getImplementation(
+                interface: $moduleModel
+            );
+            $moduleModel = $this->moduleFactory->create(
+                absolutePath: $implementationModule->absolutePath, 
+                moduleRole: $implementationModule->moduleRole,
+                moduleName: $moduleInterfaceName
+            );
         }
         $jsPath = $this->getJsPath($moduleModel, $pageModel);
         $jsContent = $this->getJsContent($jsPath);
         $classNameDeclared = $this->jsContentProcessor->getClassDeclaration($jsContent);
         $dependencyModules = $this->getDependencies($moduleModel, $moduleRegistry);
-        $placeholderScript = $this->createPlaceholderScript($moduleModel);
+        $placeholderScript = $this->createPlaceholderScript($moduleModel, $interfaceModulePath);
         $placeholderScript = $this->setHandlerContent(
             $placeholderScript, $jsContent
         );
         $placeholderScript = $this->setReturnStatement(
-            $moduleModel, $dependencyModules, $classNameDeclared, $placeholderScript
+            $pageModel,
+            $moduleModel, 
+            $dependencyModules, 
+            $classNameDeclared, 
+            $placeholderScript
         );
         $placeholderScript = $this->setHandlerDependencies(
-            $dependencyModules, $placeholderScript
+            $pageModel, $dependencyModules, $placeholderScript
         );
         return $placeholderScript;
+    }
+
+    public function isNonImplementableInterface(
+        PageModel $pageModel,
+        ModuleModel $moduleModel
+    ) {
+        return $this->pluncObjectService->getPluncObjectName(
+            $pageModel->theme, $moduleModel
+        ) !== null;
     }
 
     public function setHandlerContent(
@@ -69,6 +101,7 @@ class RegularHandlerGenerator {
     }
 
     public function setReturnStatement(
+        PageModel $pageModel,
         ModuleModel $moduleModel, 
         ModuleIterator $dependencyModules,
         string $classNameDeclared,
@@ -76,12 +109,12 @@ class RegularHandlerGenerator {
     ) {
         if ($moduleModel->moduleRole === ModuleRole::FACTORY) {
             $newInstance = $this->handlerObjectConstructorGenerator->generateAsNewInstance(
-                $classNameDeclared, $dependencyModules
+                $classNameDeclared, $dependencyModules, $pageModel
             );
             $returnStatement = "return class ___ { __(){ $newInstance } } ";
         } else {
             $newInstance = $this->handlerObjectConstructorGenerator->generateAsNewInstance(
-                $classNameDeclared, $dependencyModules
+                $classNameDeclared, $dependencyModules, $pageModel
             );
             $returnStatement = "return $newInstance"; // No class wrapper for regular handlers
         }
@@ -94,11 +127,14 @@ class RegularHandlerGenerator {
     }
 
     public function setHandlerDependencies(
+        PageModel $pageModel,
         ModuleIterator $dependencyModules,
         string $placeholderScript
     ) {
         $dependencyStatement = 
-            $this->dependencyListGenerator->generate($dependencyModules);
+            $this->dependencyListGenerator->generate(
+                $pageModel, $dependencyModules
+        );
         return str_replace(
             "===HANDLER_DEPENDENCIES===",
             $dependencyStatement,
@@ -152,11 +188,13 @@ class RegularHandlerGenerator {
 
     public function createPlaceholderScript(
         ModuleModel $moduleModel,
+        string | null $interfaceModulePath = null
     ): string {
         $role = $moduleModel->moduleRole->value;
         $name = $moduleModel->name;
+        $moduleAbsolutePath = $interfaceModulePath ?? $moduleModel->absolutePath;
         $nameAlias = $this->nameAliasPoolService->getAliasOfPath(
-            $moduleModel->absolutePath
+            $moduleAbsolutePath
         );
         return <<<EOT
         app.{$role}("{$nameAlias}", (===HANDLER_DEPENDENCIES===) => {

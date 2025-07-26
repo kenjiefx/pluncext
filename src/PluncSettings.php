@@ -2,9 +2,11 @@
 
 namespace Kenjiefx\Pluncext;
 
+use Kenjiefx\ScratchPHP\App\Extensions\ExtensionSettings;
+
 class PluncSettings {
 
-    private static array $settings = [];
+    private static ExtensionSettings | null $settings = null;
 
     public function __construct(
 
@@ -29,7 +31,7 @@ class PluncSettings {
     }
 
     public function load(
-        array $settings
+        ExtensionSettings $settings
     ){
         // Load the settings only once
         if ($this->hasLoaded()) {
@@ -43,7 +45,7 @@ class PluncSettings {
      * @return bool
      */
     public function hasLoaded(){
-        return !empty(static::$settings);
+        return static::$settings !== null;
     }
 
 }

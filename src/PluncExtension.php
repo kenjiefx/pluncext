@@ -2,10 +2,12 @@
 
 namespace Kenjiefx\Pluncext;
 
+use Kenjiefx\Pluncext\Bindings\BindingRegistry;
 use Kenjiefx\Pluncext\ComponentProxy\ComponentProxyModel;
 use Kenjiefx\Pluncext\ComponentProxy\ComponentProxyRegistry;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkBundleService;
 use Kenjiefx\Pluncext\Modules\ModuleRegistry;
+use Kenjiefx\Pluncext\Services\BindingsCollector;
 use Kenjiefx\Pluncext\Services\ComponentService;
 use Kenjiefx\Pluncext\Services\ModuleCollector;
 use Kenjiefx\ScratchPHP\App\Events\Instances\ComponentHTMLCollectedEvent;
@@ -25,18 +27,21 @@ class PluncExtension implements ExtensionInterface {
 
     private ModuleRegistry $moduleRegistry;
     private ComponentProxyRegistry $componentProxyRegistry;
+    private BindingRegistry $bindingsRegistry;
 
     public function __construct(
         private ModuleCollector $moduleCollector,
         private ConfigurationInterface $configuration,
         private ThemeServiceInterface $themeService,
         private QuarkBundleService $scriptBundlerInterface,
-        private ComponentService $componentService
+        private ComponentService $componentService,
+        private BindingsCollector $bindingsCollector,
+        private PluncSettings $pluncSettings
     ) {}
     
     #[ListensTo(ExtensionSettingsRegisterEvent::class)]
     public function onSettingsRegistry(ExtensionSettings $settings) {
-        
+        $this->pluncSettings->load($settings);
     }
 
     #[ListensTo(PageBeforeBuildEvent::class)]
@@ -45,11 +50,16 @@ class PluncExtension implements ExtensionInterface {
         $this->moduleRegistry = $this->moduleCollector->collect(
             $this->getThemeDir()
         );
+        $this->bindingsRegistry = $this->bindingsCollector->collect(
+            $this->moduleRegistry, 
+            $event->page
+        );
     }
 
     #[ListensTo(PageJSBuildCompleteEvent::class)]
     public function pageJsBuild(PageJSBuildCompleteEvent $event) {
         $event->content = $this->scriptBundlerInterface->bundle(
+            $this->bindingsRegistry,
             $this->moduleRegistry,
             $event->pageModel
         );

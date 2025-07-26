@@ -2,6 +2,7 @@
 
 namespace Kenjiefx\Pluncext\Implementations\QuarkBundler;
 
+use Kenjiefx\Pluncext\Bindings\BindingRegistry;
 use Kenjiefx\Pluncext\Dependencies\DependencyIterator;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\BundleItem\BundleItemModel;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\BundleItem\BundleItemRegistry;
@@ -20,6 +21,7 @@ class QuarkBundleService implements ScriptBundlerInterface {
     ) {}
 
     public function bundle(
+        BindingRegistry $bindingRegistry,
         ModuleRegistry $moduleRegistry,
         PageModel $pageModel
     ): string {
@@ -27,7 +29,7 @@ class QuarkBundleService implements ScriptBundlerInterface {
         $resultScript = $this->handlerGenerator->generateStarterScript();
         $resultScript .= $this->handlerGenerator->generatePluncApiScripts();
         $this->bundleComponents(
-            $moduleRegistry, $pageModel, $bundledItems
+            $bindingRegistry, $moduleRegistry, $pageModel, $bundledItems
         );
         foreach ($bundledItems->getAll() as $bundleItem) {
             $resultScript .= $bundleItem->content . "\n";
@@ -39,6 +41,7 @@ class QuarkBundleService implements ScriptBundlerInterface {
     }
 
     public function bundleComponents(
+        BindingRegistry $bindingRegistry,
         ModuleRegistry $moduleRegistry,
         PageModel $pageModel,
         BundleItemRegistry $bundledItems
@@ -60,10 +63,10 @@ class QuarkBundleService implements ScriptBundlerInterface {
             }
             $dependencies = $moduleModel->dependencies;
             $this->bundleDependencies(
-                $dependencies, $moduleRegistry, $pageModel, $bundledItems
+                $bindingRegistry, $dependencies, $moduleRegistry, $pageModel, $bundledItems
             );
             $handlerScript = $this->handlerGenerator->generateRegularHandler(
-                $moduleRegistry, $moduleModel, $pageModel
+                $bindingRegistry, $moduleRegistry, $moduleModel, $pageModel
             );
             $bundledItem = new BundleItemModel(
                 $componentTsPath, $handlerScript
@@ -73,6 +76,7 @@ class QuarkBundleService implements ScriptBundlerInterface {
     }
 
     public function bundleDependencies(
+        BindingRegistry $bindingRegistry,
         DependencyIterator $dependencyIterator,
         ModuleRegistry $moduleRegistry,
         PageModel $pageModel,
@@ -96,10 +100,10 @@ class QuarkBundleService implements ScriptBundlerInterface {
             }
             $dependencies = $dependencyModule->dependencies;
             $this->bundleDependencies(
-                $dependencies, $moduleRegistry, $pageModel, $bundledItems
+                $bindingRegistry, $dependencies, $moduleRegistry, $pageModel, $bundledItems
             );
             $handlerScript = $this->handlerGenerator->generateRegularHandler(
-                $moduleRegistry, $dependencyModule, $pageModel
+                $bindingRegistry, $moduleRegistry, $dependencyModule, $pageModel
             );
             $bundledItem = new BundleItemModel(
                 $dependencyTsPath, $handlerScript
