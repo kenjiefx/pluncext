@@ -31,6 +31,9 @@ class QuarkBundleService implements ScriptBundlerInterface {
         $this->bundleComponents(
             $bindingRegistry, $moduleRegistry, $pageModel, $bundledItems
         );
+        $this->bundleAppComponent(
+            $bindingRegistry, $moduleRegistry, $pageModel, $bundledItems
+        );
         foreach ($bundledItems->getAll() as $bundleItem) {
             $resultScript .= $bundleItem->content . "\n";
         }
@@ -38,6 +41,21 @@ class QuarkBundleService implements ScriptBundlerInterface {
             $moduleRegistry, $pageModel
         );
         return $resultScript;
+    }
+
+    public function bundleAppComponent(
+        BindingRegistry $bindingRegistry,
+        ModuleRegistry $moduleRegistry,
+        PageModel $pageModel,
+        BundleItemRegistry $bundledItems
+    ) {
+        $appComponentModule 
+            = $this->handlerGenerator->generateAppComponentModule(
+                $pageModel
+            );
+        $this->bundleDependencies(
+            $bindingRegistry, $appComponentModule->dependencies, $moduleRegistry, $pageModel, $bundledItems
+        );
     }
 
     public function bundleComponents(

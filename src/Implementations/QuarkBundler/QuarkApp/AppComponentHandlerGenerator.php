@@ -37,11 +37,8 @@ class AppComponentHandlerGenerator {
         ModuleRegistry $moduleRegistry,
         PageModel $pageModel
     ) {
-        $templateTsPath = $this->getTemplateTsPath($pageModel);
-        $moduleModel = $this->moduleFactory->create(
-            $templateTsPath, 
-            ModuleRole::ROOTAPP,
-            'App'
+        $moduleModel = $this->createModule(
+            $pageModel
         );
         $jsPath = $this->getJsPath($moduleModel, $pageModel);
         $jsContent = $this->getJsContent($jsPath);
@@ -60,6 +57,17 @@ class AppComponentHandlerGenerator {
             $placeHolderScript
         );
         return $placeHolderScript;
+    }
+
+    public function createModule(
+        PageModel $pageModel
+    ) {
+        $templateTsPath = $this->getTemplateTsPath($pageModel);
+        return $this->moduleFactory->create(
+            $templateTsPath, 
+            ModuleRole::ROOTAPP,
+            'App'
+        );
     }
 
     public function getDependencies(

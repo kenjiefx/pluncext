@@ -53,5 +53,11 @@ class QuarkHandlerGenerator {
         );
     }
 
+    public function generateAppComponentModule(
+        PageModel $pageModel
+    ) {
+        return $this->appComponentHandlerGenerator->createModule($pageModel);
+    }
+
 
 }
