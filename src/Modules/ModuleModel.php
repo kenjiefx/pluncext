@@ -2,11 +2,8 @@
 
 namespace Kenjiefx\Pluncext\Modules;
 
-use Kenjiefx\Pluncext\Dependency\DependencyIterator;
+use Kenjiefx\Pluncext\Dependencies\DependencyIterator;
 
-/**
- * Represents a JavaScript module with its absolute path.
- */
 class ModuleModel {
 
     public function __construct(
@@ -15,5 +12,25 @@ class ModuleModel {
         public readonly ModuleRole $moduleRole,
         public readonly DependencyIterator $dependencies
     ) {}
+
+    public function debugPrint(): void {
+        $printArr = [
+            'name' => $this->name,
+            'absolutePath' => $this->absolutePath,
+            'moduleRole' => $this->moduleRole->name,
+            'dependencies' => []
+        ];
+        foreach ($this->dependencies as $dependency) {
+            $imports = $dependency->imports;
+            $absolutePath = $dependency->absolutePath;
+            $printArr['dependencies'][] = [
+                'absolutePath' => $absolutePath,
+                'imports' => $imports
+            ];
+        }
+        echo "<pre>";
+        print_r($printArr);
+        echo "</pre>";
+    }
 
 }

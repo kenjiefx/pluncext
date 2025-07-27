@@ -2,43 +2,45 @@
 
 namespace Kenjiefx\Pluncext\Modules;
 
-/**
- * ModuleRegistry is a singleton class that manages the registration and retrieval of ModuleModel instances.
- * It allows for registering modules by their absolute path and provides methods to find and retrieve them.
- */
 class ModuleRegistry {
 
-    private static array $registry = [];
-
     public function __construct(
-
-    ) {}
-
-    public function register(
-        ModuleModel $moduleModel
+        private ModuleIterator $moduleIterator,
     ) {
-        $absolutePath = $moduleModel->absolutePath;
-        // Normalize the absolute path to ensure consistent registration
-        $absolutePath = realpath($absolutePath) ?: $absolutePath;
-        if (!isset(self::$registry[$absolutePath])) {
-            self::$registry[$absolutePath] = $moduleModel;
-        }
+        
     }
 
     public function findByPath(
         string $absolutePath
     ): ?ModuleModel {
-        // Normalize the absolute path to ensure consistent retrieval
-        $absolutePath = realpath($absolutePath) ?: $absolutePath;
-        return self::$registry[$absolutePath] ?? null;
+        foreach ($this->moduleIterator as $module) {
+            // normalize the absolute path to ensure consistent retrieval
+            $moduleAbsolutePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $module->absolutePath);
+            $givenAbsolutePath  = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $absolutePath);
+            if ($moduleAbsolutePath === $givenAbsolutePath) {
+                return $module;
+            }
+        }
+        return null;
     }
 
-    public function getAll(): array {
-        return self::$registry;
+    public function getAll(): ModuleIterator {
+        return $this->moduleIterator;
     }
 
-    public function clear() {
-        self::$registry = [];
+    public function debugPrint(): void {
+        $printArr = [];
+        foreach ($this->moduleIterator as $module) {
+            $role = $module->moduleRole;
+            $printArr[] = [
+                'name' => $module->name,
+                'path' => $module->absolutePath,
+                'role' => $role->name
+            ];
+        }
+        echo "<pre>";
+        print_r($printArr);
+        echo "</pre>";
     }
 
 }

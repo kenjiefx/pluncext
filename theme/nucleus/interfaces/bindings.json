@@ -1,0 +1,3 @@
+{
+    "interfaces/Providers/AuthServiceProviderInterface.ts": "services/Requesters/AuthService.ts"
+}

@@ -1,5 +1,5 @@
 {
-    "theme": "slate",
+    "theme": "nucleus",
     "exportDir": "\/dist",
     "build": {
         "useRandomAssetsFileNames": true

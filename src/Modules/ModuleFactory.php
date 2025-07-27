@@ -2,52 +2,50 @@
 
 namespace Kenjiefx\Pluncext\Modules;
 
-use Kenjiefx\Pluncext\Dependency\DependencyFactory;
-use Kenjiefx\Pluncext\Dependency\DependencyIterator;
-use Kenjiefx\Pluncext\Services\ModuleDependencyService;
-use Kenjiefx\ScratchPHP\App\Files\FileFactory;
-use Kenjiefx\ScratchPHP\App\Files\FileService;
+use Kenjiefx\Pluncext\Dependencies\DependencyFactory;
+use Kenjiefx\Pluncext\Dependencies\DependencyIterator;
+use Kenjiefx\Pluncext\Services\TypeScriptParser;
+use Symfony\Component\Filesystem\Filesystem;
 
 class ModuleFactory {
 
     public function __construct(
-        public readonly FileFactory $fileFactory,
-        public readonly FileService $fileService,
-        public readonly DependencyFactory $dependencyFactory,
-        public readonly ModuleDependencyService $moduleDependencyService
+        private Filesystem $filesystem,
+        private TypeScriptParser $typeScriptParser,
+        private DependencyFactory $dependencyFactory,
     ) {}
 
-    /**
-     * Creates a new ModuleModel instance with the given absolute path.
-     *
-     * @param string $absolutePath The absolute path of the module.
-     * @return ModuleModel A new instance of ModuleModel.
-     */
     public function create(
         string $absolutePath,
         ModuleRole $moduleRole,
-    ): ModuleModel {
-        $file = $this->fileFactory->create($absolutePath);
-        $moduleContent = $this->fileService->readFile($file);
-        $importStatements = $this->moduleDependencyService->extractImportStmts($moduleContent);
-        $dependencies = [];
-        foreach ($importStatements as $importStatement) {
-            $importData = $this->moduleDependencyService->parseImportStatement($importStatement);
-            $importAbsPath = $this->moduleDependencyService->resolveImportPath($importData['location'], $absolutePath);
-            if ($this->isAnInterface($importAbsPath)) {
-                continue; // Skip Plunc API imports
-            }
-            $dependencies[] = $this->dependencyFactory->create(
-                $importAbsPath, $importData['imports']
-            );
+        string | null $moduleName = null
+    ) {
+        $content = $this->filesystem->readFile($absolutePath);
+        $dependencies = $this->parseDependencies($content, $absolutePath);
+        if ($moduleName === null) {
+            $moduleName = $this->getFilenameWithoutExt($absolutePath);
         }
-        $importFile = new ModuleModel (
+        return new ModuleModel(
             absolutePath: $absolutePath,
-            name: $this->getFilenameWithoutExt($absolutePath),
+            name: $moduleName,
             moduleRole: $moduleRole,
-            dependencies: new DependencyIterator($dependencies)
+            dependencies: $dependencies
         );
-        return $importFile;
+    }
+
+    public function parseDependencies(
+        string $moduleContent,
+        string $moduleAbsolutePath
+    ): DependencyIterator {
+        $importStatements = $this->typeScriptParser->extractImportStatements($moduleContent);
+        $dependencyModels = [];
+        foreach ($importStatements as $importStatement) {
+            $dependencyModel = $this->dependencyFactory->createFromImportStatement(
+                $importStatement, $moduleAbsolutePath
+            );
+            $dependencyModels[] = $dependencyModel;
+        }
+        return new DependencyIterator($dependencyModels);
     }
 
     private function getFilenameWithoutExt(
@@ -55,14 +53,6 @@ class ModuleFactory {
     ): string {
         $pathInfo = pathinfo($absolutePath);
         return $pathInfo['filename'] ?? '';
-    }
-
-    private function isAnInterface(
-        string $absolutePath
-    ): bool {
-        return 
-            str_contains($absolutePath, "/interfaces/") || 
-            str_contains($absolutePath, "\\interfaces\\");
     }
 
 }
