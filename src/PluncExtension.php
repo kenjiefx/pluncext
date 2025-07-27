@@ -11,6 +11,7 @@ use Kenjiefx\Pluncext\Modules\ModuleRegistry;
 use Kenjiefx\Pluncext\Services\BindingsCollector;
 use Kenjiefx\Pluncext\Services\ComponentService;
 use Kenjiefx\Pluncext\Services\ModuleCollector;
+use Kenjiefx\Pluncext\Services\TypeScriptCompiler;
 use Kenjiefx\ScratchPHP\App\Events\Instances\ComponentHTMLCollectedEvent;
 use Kenjiefx\ScratchPHP\App\Events\Instances\ExtensionSettingsRegisterEvent;
 use Kenjiefx\ScratchPHP\App\Events\Instances\PageAfterBuildEvent;
@@ -38,7 +39,8 @@ class PluncExtension implements ExtensionInterface {
         private ComponentService $componentService,
         private BindingsCollector $bindingsCollector,
         private PluncSettings $pluncSettings,
-        private TerserMinifier $minifierInterface
+        private TerserMinifier $minifierInterface,
+        private TypeScriptCompiler $typeScriptCompiler
     ) {}
     
     #[ListensTo(ExtensionSettingsRegisterEvent::class)]
@@ -48,6 +50,7 @@ class PluncExtension implements ExtensionInterface {
 
     #[ListensTo(PageBeforeBuildEvent::class)]
     public function beforePageBuild(PageBeforeBuildEvent $event): void {
+        $this->typeScriptCompiler->compile();
         $this->componentProxyRegistry = new ComponentProxyRegistry();
         $this->moduleRegistry = $this->moduleCollector->collect(
             $this->getThemeDir()
