@@ -6,6 +6,7 @@ use Kenjiefx\Pluncext\Bindings\BindingRegistry;
 use Kenjiefx\Pluncext\ComponentProxy\ComponentProxyModel;
 use Kenjiefx\Pluncext\ComponentProxy\ComponentProxyRegistry;
 use Kenjiefx\Pluncext\Implementations\QuarkBundler\QuarkBundleService;
+use Kenjiefx\Pluncext\Implementations\TerserMinifier\TerserMinifier;
 use Kenjiefx\Pluncext\Modules\ModuleRegistry;
 use Kenjiefx\Pluncext\Services\BindingsCollector;
 use Kenjiefx\Pluncext\Services\ComponentService;
@@ -36,7 +37,8 @@ class PluncExtension implements ExtensionInterface {
         private QuarkBundleService $scriptBundlerInterface,
         private ComponentService $componentService,
         private BindingsCollector $bindingsCollector,
-        private PluncSettings $pluncSettings
+        private PluncSettings $pluncSettings,
+        private TerserMinifier $minifierInterface
     ) {}
     
     #[ListensTo(ExtensionSettingsRegisterEvent::class)]
@@ -58,11 +60,12 @@ class PluncExtension implements ExtensionInterface {
 
     #[ListensTo(PageJSBuildCompleteEvent::class)]
     public function pageJsBuild(PageJSBuildCompleteEvent $event) {
-        $event->content = $this->scriptBundlerInterface->bundle(
+        $bundledContent = $this->scriptBundlerInterface->bundle(
             $this->bindingsRegistry,
             $this->moduleRegistry,
             $event->pageModel
         );
+        $event->content = $this->minifierInterface->minify($bundledContent);
     }
 
     #[ListensTo(ComponentHTMLCollectedEvent::class)]
