@@ -111,7 +111,7 @@ class RegularHandlerGenerator {
             $newInstance = $this->handlerObjectConstructorGenerator->generateAsNewInstance(
                 $classNameDeclared, $dependencyModules, $pageModel
             );
-            $returnStatement = "return class ___ { __(){ $newInstance } } ";
+            $returnStatement = "return class ___ { __(){ return $newInstance } } ";
         } else {
             $newInstance = $this->handlerObjectConstructorGenerator->generateAsNewInstance(
                 $classNameDeclared, $dependencyModules, $pageModel
