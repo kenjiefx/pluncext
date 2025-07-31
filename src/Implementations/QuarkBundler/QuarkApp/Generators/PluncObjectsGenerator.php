@@ -14,8 +14,15 @@ class PluncObjectsGenerator {
             constructor(blockApi) {
                 this.block = blockApi
             }
-            get(elementName, callback){
+            getAll(elementName, callback){
                 this.block(elementName, callback);
+            }
+            get(elementName) {
+                return new Promise(async (resolve) => {
+                    this.block(elementName, (block) => {
+                        resolve(block);
+                    });
+                });
             }
         }
         JS;
