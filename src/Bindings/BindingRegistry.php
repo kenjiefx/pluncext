@@ -46,6 +46,22 @@ class BindingRegistry {
         );
     }
 
+    public function hasImplementation(ModuleModel $interface): bool {
+        if ($interface->moduleRole !== ModuleRole::INTERFACE) {
+            throw new Exception(
+                "Module {$interface->name} is not an interface module, cannot check for implementation."
+            );
+        }
+        $interfaceModulePath = $this->normalizePath($interface->absolutePath);
+        foreach ($this->bindings as $binding) {
+            $implementationModulePath = $this->normalizePath($binding->interface->absolutePath);
+            if ($implementationModulePath === $interfaceModulePath) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Retrieves the interface module for a given implementation module.
      *

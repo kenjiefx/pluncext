@@ -33,32 +33,19 @@ class RegularHandlerGenerator {
     ) {}
 
     public function generateHandler(
-        BindingRegistry $bindingRegistry,
         ModuleRegistry $moduleRegistry,
         ModuleModel $moduleModel,
-        PageModel $pageModel
+        PageModel $pageModel,
+        string | null $pathOfInterfaceIfModuleImplementsInterface = null
     ): string {
-        $interfaceModulePath = null;
         if ($moduleModel->moduleRole === ModuleRole::INTERFACE) {
-            if ($this->isNonImplementableInterface($pageModel, $moduleModel)) {
-                return "";
-            }
-            $moduleInterfaceName = $moduleModel->name;
-            $interfaceModulePath = $moduleModel->absolutePath;
-            $implementationModule = $bindingRegistry->getImplementation(
-                interface: $moduleModel
-            );
-            $moduleModel = $this->moduleFactory->create(
-                absolutePath: $implementationModule->absolutePath, 
-                moduleRole: $implementationModule->moduleRole,
-                moduleName: $moduleInterfaceName
-            );
+            return "";
         }
         $jsPath = $this->getJsPath($moduleModel, $pageModel);
         $jsContent = $this->getJsContent($jsPath);
         $classNameDeclared = $this->jsContentProcessor->getClassDeclaration($jsContent);
         $dependencyModules = $this->getDependencies($moduleModel, $moduleRegistry);
-        $placeholderScript = $this->createPlaceholderScript($moduleModel, $interfaceModulePath);
+        $placeholderScript = $this->createPlaceholderScript($moduleModel, $pathOfInterfaceIfModuleImplementsInterface);
         $placeholderScript = $this->setHandlerContent(
             $placeholderScript, $jsContent
         );

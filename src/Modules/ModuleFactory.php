@@ -18,10 +18,13 @@ class ModuleFactory {
     public function create(
         string $absolutePath,
         ModuleRole $moduleRole,
-        string | null $moduleName = null
+        string | null $moduleName = null,
+        DependencyIterator | null $dependencies = null
     ) {
         $content = $this->filesystem->readFile($absolutePath);
-        $dependencies = $this->parseDependencies($content, $absolutePath);
+        if ($dependencies === null) {
+            $dependencies = $this->parseDependencies($content, $absolutePath);
+        }
         if ($moduleName === null) {
             $moduleName = $this->getFilenameWithoutExt($absolutePath);
         }

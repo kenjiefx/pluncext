@@ -30,16 +30,16 @@ class QuarkHandlerGenerator {
     }
 
     public function generateRegularHandler(
-        BindingRegistry $bindingRegistry,
         ModuleRegistry $moduleRegistry,
         ModuleModel $moduleModel,
-        PageModel $pageModel
+        PageModel $pageModel,
+        string | null $pathOfInterfaceIfModuleImplementsInterface = null
     ) {
         return $this->regularHandlerGenerator->generateHandler(
-            $bindingRegistry,
             $moduleRegistry, 
             $moduleModel, 
-            $pageModel
+            $pageModel,
+            $pathOfInterfaceIfModuleImplementsInterface
         );
     }
 
